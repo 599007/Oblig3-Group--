@@ -24,6 +24,8 @@ import org.apache.logging.log4j.Logger;
 import no.hvl.dat110.middleware.Message;
 import no.hvl.dat110.rpc.interfaces.NodeInterface;
 
+import static no.hvl.dat110.util.Hash.hashOf;
+
 public class FileManager {
 	
 	private static final Logger logger = LogManager.getLogger(FileManager.class);
@@ -57,7 +59,12 @@ public class FileManager {
 	}
 	
 	public void createReplicaFiles() {
-	 	
+
+		for (int i = 0; i < numReplicas; i++) {
+			String replicaname = filename + i;
+			BigInteger hash = hashOf(replicaname);
+			replicafiles[i] = hash;
+		}
 		// set a loop where size = numReplicas
 		
 		// replicate by adding the index to filename
@@ -163,7 +170,7 @@ public class FileManager {
 		
 		//set the values
 		filename = f.getName().replace(".txt", "");		
-		hash = Hash.hashOf(filename);
+		hash = hashOf(filename);
 		this.bytesOfFile = bytesOfFile;
 		double size = (double) bytesOfFile.length/1000;
 		NumberFormat nf = new DecimalFormat();
