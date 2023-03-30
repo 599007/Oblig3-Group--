@@ -165,14 +165,13 @@ public class StabilizationProtocols extends TimerTask {
 
 			logger.info("Finished updating the successor for Node: "+ chordnode.getNodeName());
 
-		} catch(RemoteException e)
+		} catch(RemoteException | NotBoundException e)
 		{
 			//
-		} catch (NotBoundException e) {
-			throw new RuntimeException(e);
 		}
 	}
-	
+
+
 	private void printInfo() {
 		try {
 			System.out.println("==================================");
