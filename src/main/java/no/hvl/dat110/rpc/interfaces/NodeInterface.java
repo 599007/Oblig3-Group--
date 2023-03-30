@@ -7,6 +7,7 @@ package no.hvl.dat110.rpc.interfaces;
  */
 
 import java.math.BigInteger;
+import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.List;
@@ -40,7 +41,7 @@ public interface NodeInterface extends Remote {
 	
 	public void removeKey(BigInteger id) throws RemoteException;
 	
-	public NodeInterface findSuccessor(BigInteger key) throws RemoteException;
+	public NodeInterface findSuccessor(BigInteger key) throws RemoteException, NotBoundException;
 	
 	public void notify(NodeInterface pred) throws RemoteException;
 	
