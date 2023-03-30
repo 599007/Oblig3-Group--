@@ -1,6 +1,7 @@
 package no.hvl.dat110.middleware;
 
 import java.math.BigInteger;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
@@ -9,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 import no.hvl.dat110.chordoperations.ChordLookup;
 import no.hvl.dat110.rpc.interfaces.NodeInterface;
@@ -125,10 +127,13 @@ public class Node extends UnicastRemoteObject implements NodeInterface {
 	}
 
 	@Override
-	public NodeInterface findSuccessor(BigInteger key) throws RemoteException {
+	public NodeInterface findSuccessor(BigInteger key) throws RemoteException, NotBoundException {
+
 		// ask this node to find the successor of key
-		return lookup.findSuccessor(key);
+			return lookup.findSuccessor(key);
+
 	}
+
 	
 	//@Override
 	public void copyKeysFromSuccessor(NodeInterface succ) {
@@ -191,6 +196,7 @@ public class Node extends UnicastRemoteObject implements NodeInterface {
 		return mutex.doMutexRequest(this.message, updates);
 
 	}
+
 	
 	@Override
 	public void acquireLock() throws RemoteException {
@@ -203,6 +209,7 @@ public class Node extends UnicastRemoteObject implements NodeInterface {
 		
 		mutex.releaseLocks();
 	}
+
 
 	@Override
 	public void onMutexAcknowledgementReceived(Message message) throws RemoteException {

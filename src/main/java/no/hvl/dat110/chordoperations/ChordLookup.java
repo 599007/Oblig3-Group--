@@ -4,7 +4,10 @@
 package no.hvl.dat110.chordoperations;
 
 import java.math.BigInteger;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -31,7 +34,37 @@ public class ChordLookup {
 		this.node = node;
 	}
 	
-	public NodeInterface findSuccessor(BigInteger key) throws RemoteException {
+	public NodeInterface findSuccessor(BigInteger key) throws NotBoundException, RemoteException {
+		/*
+		NodeInterface succ = node.findSuccessor(key);
+		BigInteger succID = succ.getNodeID();
+		BigInteger nodeID = node.getNodeID();
+
+		while (!Util.checkInterval(key, nodeID, succID)) {
+			NodeInterface nodePred = findHighestPredecessor(key);
+			succ = nodePred.findSuccessor(key);
+			succID = succ.getNodeID();
+		}
+
+		return succ;
+	}
+*/
+		try {
+			NodeInterface succ = node.getSuccessor();
+
+			//BigInteger succID = succ.getNodeID();
+
+			NodeInterface stub = Util.getProcessStub(succ.getNodeName(), succ.getPort());
+
+			if(Util.checkInterval(key, node.getNodeID().add(BigInteger.ONE), stub.getNodeID())){
+				return stub;
+			} else {
+				return findHighestPredecessor(key).findSuccessor(key);
+			}
+		} catch (Exception e) {
+			System.out.print(e);
+			return null;
+		}
 		// ask this node to find the successor of key
 		
 		// get the successor of the node
@@ -44,7 +77,7 @@ public class ChordLookup {
 		
 		// do highest_pred.findSuccessor(key) - This is a recursive call until logic returns true
 				
-		return null;					
+
 	}
 	
 	/**
@@ -53,8 +86,19 @@ public class ChordLookup {
 	 * @return
 	 * @throws RemoteException
 	 */
-	private NodeInterface findHighestPredecessor(BigInteger ID) throws RemoteException {
-		
+	private NodeInterface findHighestPredecessor(BigInteger ID) throws RemoteException, NotBoundException {
+
+		List<NodeInterface> fingerTableEntries = node.getFingerTable();
+		for (int i = 0; i < fingerTableEntries.size(); i++) {
+			NodeInterface finger = fingerTableEntries.get(i);
+			if (finger != null) {
+				Registry registry = LocateRegistry.getRegistry(finger.getNodeID().toString(), finger.getPort());
+				NodeInterface fingerStub = (NodeInterface) registry.lookup(finger.getNodeName());
+			}
+			if(Util.checkInterval(ID, node.getNodeID(), finger.getNodeID())){
+				return finger;
+			}
+		}
 		// collect the entries in the finger table for this node
 		
 		// starting from the last entry, iterate over the finger table

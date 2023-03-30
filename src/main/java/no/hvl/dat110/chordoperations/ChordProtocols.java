@@ -4,11 +4,15 @@
 package no.hvl.dat110.chordoperations;
 
 import java.math.BigInteger;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
+import java.util.List;
 import java.util.Set;
 import java.util.Timer;
 
+
+import no.hvl.dat110.util.Hash;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -16,6 +20,9 @@ import no.hvl.dat110.middleware.Message;
 import no.hvl.dat110.middleware.Node;
 import no.hvl.dat110.rpc.interfaces.NodeInterface;
 import no.hvl.dat110.util.Util;
+
+import static no.hvl.dat110.util.Hash.addressSize;
+import static no.hvl.dat110.util.Hash.hashOf;
 
 /**
  * @author tdoy
@@ -155,7 +162,19 @@ public class ChordProtocols {
 		
 		try {
 			logger.info("Fixing the FingerTable for the Node: "+ chordnode.getNodeName());
-	
+
+			List<NodeInterface> fingerTable = chordnode.getFingerTable();
+			fingerTable.clear();
+			BigInteger mbit = Hash.addressSize();
+			int nbit = Hash.bitSize();
+
+			for (int i = 0; i < nbit; i++) {
+				BigInteger k = chordnode.getNodeID().add(BigInteger.valueOf(2).pow(i)).mod(BigInteger.valueOf(2).pow(mbit.intValue()));
+				NodeInterface succ = chordnode.findSuccessor(k);
+				if(succ != null){
+					fingerTable.add(succ);
+				}
+			}
 			// get the finger table from the chordnode (list object)
 			
 			// ensure to clear the current finger table
@@ -173,7 +192,9 @@ public class ChordProtocols {
 			// check that succnode is not null, then add it to the finger table
 
 		} catch (RemoteException e) {
-			//
+
+		} catch (NotBoundException e) {
+			throw new RuntimeException(e);
 		}
 	}
 

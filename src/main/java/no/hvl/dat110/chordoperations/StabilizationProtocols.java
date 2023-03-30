@@ -4,6 +4,7 @@
 package no.hvl.dat110.chordoperations;
 
 import java.math.BigInteger;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -87,17 +88,17 @@ public class StabilizationProtocols extends TimerTask {
 					
 			NodeInterface succnode = null;
 			NodeInterface predsucc = null;
-			
+
 			logger.info("Stabilize ring: succnode = "+succ.getNodeName());
 
 			succnode = Util.getProcessStub(succ.getNodeName(), succ.getPort());						// confirm the successor is alive
 			predsucc = succnode.getPredecessor(); 													// get the predecessor of the successor of this node
-			
+
 			BigInteger nodeID = chordnode.getNodeID();
 			BigInteger succID = succnode.getNodeID();
-	
+
 			BigInteger predsuccID = null;
-			
+
 			if(predsucc != null) {
 				predsuccID = predsucc.getNodeID();
 
@@ -106,7 +107,7 @@ public class StabilizationProtocols extends TimerTask {
 				if(cond) {
 					chordnode.setSuccessor(predsucc);
 					((Node)chordnode).copyKeysFromSuccessor(succ); 						// copy keys from successor
-					predsucc.notify(chordnode);											// notify successor (predsucc) that it has a new predecessor (node)	
+					predsucc.notify(chordnode);											// notify successor (predsucc) that it has a new predecessor (node)
 				}
 			}
 			
@@ -128,26 +129,26 @@ public class StabilizationProtocols extends TimerTask {
 	private void updateSuccessor() {
 		try {
 			logger.info("Updating the successor for Node: "+ chordnode.getNodeName());
-			BigInteger succid = chordnode.getNodeID().add(new BigInteger("1")); 					// get the succid of (nodestub+1)	
-			
+			BigInteger succid = chordnode.getNodeID().add(new BigInteger("1")); 					// get the succid of (nodestub+1)
+
 			NodeInterface succnodestub = chordnode.findSuccessor(succid);						// finds the successor (succ(nodestub+1) of this node(remote call)
-			
+
 			if (succnodestub == null)
 				return;
-			
+
 			NodeInterface predsucc = succnodestub.getPredecessor();							// get the predecessor of the successor of this node
-			
+
 			try {
 				if(chordnode.getNodeName().equals(predsucc.getNodeName())){
 					return;
 				} else {
-					((Node) chordnode).getFingerTable().set(0, predsucc);									// update the first successor (entry) of the finger table				
+					((Node) chordnode).getFingerTable().set(0, predsucc);									// update the first successor (entry) of the finger table
 					chordnode.setSuccessor(predsucc); 												// update the immediate successor (same as FT[0]
 					((Node) chordnode).copyKeysFromSuccessor((Node)predsucc); 										// copy keys from successor
 					predsucc.notify(chordnode); 													// notify succnodestub of this node as its predecessor
 					updateSuccessor();
 				}
-				
+
 			} catch(Exception e) {
 				// in the case of a two ring node: we need this mechanism to eventually update the predecessors
 				// notify succ that its pred may be this node (chordnode)
@@ -161,15 +162,16 @@ public class StabilizationProtocols extends TimerTask {
 				}
 				//
 			}
-			
+
 			logger.info("Finished updating the successor for Node: "+ chordnode.getNodeName());
-			
-		} catch(RemoteException e) 
+
+		} catch(RemoteException | NotBoundException e)
 		{
 			//
-		}		
+		}
 	}
-	
+
+
 	private void printInfo() {
 		try {
 			System.out.println("==================================");
