@@ -8,6 +8,7 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -35,36 +36,21 @@ public class ChordLookup {
 	}
 	
 	public NodeInterface findSuccessor(BigInteger key) throws NotBoundException, RemoteException {
-		/*
-		NodeInterface succ = node.findSuccessor(key);
+
+		NodeInterface succ = node.getSuccessor();
+
 		BigInteger succID = succ.getNodeID();
-		BigInteger nodeID = node.getNodeID();
 
-		while (!Util.checkInterval(key, nodeID, succID)) {
-			NodeInterface nodePred = findHighestPredecessor(key);
-			succ = nodePred.findSuccessor(key);
-			succID = succ.getNodeID();
+		NodeInterface stub = Util.getProcessStub(succ.getNodeName(), succ.getPort());
+
+		if (Util.checkInterval(key, node.getNodeID().add(BigInteger.ONE), stub.getNodeID())) {
+			return stub;
+		} else {
+			return findHighestPredecessor(key).findSuccessor(key);
 		}
 
-		return succ;
 	}
-*/
-		try {
-			NodeInterface succ = node.getSuccessor();
 
-			//BigInteger succID = succ.getNodeID();
-
-			NodeInterface stub = Util.getProcessStub(succ.getNodeName(), succ.getPort());
-
-			if(Util.checkInterval(key, node.getNodeID().add(BigInteger.ONE), stub.getNodeID())){
-				return stub;
-			} else {
-				return findHighestPredecessor(key).findSuccessor(key);
-			}
-		} catch (Exception e) {
-			System.out.print(e);
-			return null;
-		}
 		// ask this node to find the successor of key
 		
 		// get the successor of the node
@@ -78,7 +64,7 @@ public class ChordLookup {
 		// do highest_pred.findSuccessor(key) - This is a recursive call until logic returns true
 				
 
-	}
+
 	
 	/**
 	 * This method makes a remote call. Invoked from a local client
@@ -88,17 +74,26 @@ public class ChordLookup {
 	 */
 	private NodeInterface findHighestPredecessor(BigInteger ID) throws RemoteException, NotBoundException {
 
-		List<NodeInterface> fingerTableEntries = node.getFingerTable();
-		for (int i = 0; i < fingerTableEntries.size(); i++) {
-			NodeInterface finger = fingerTableEntries.get(i);
-			if (finger != null) {
-				Registry registry = LocateRegistry.getRegistry(finger.getNodeID().toString(), finger.getPort());
-				NodeInterface fingerStub = (NodeInterface) registry.lookup(finger.getNodeName());
-			}
-			if(Util.checkInterval(ID, node.getNodeID(), finger.getNodeID())){
-				return finger;
+		// Collect the entries in the finger table for the current node.
+		List<NodeInterface> fingerTable = node.getFingerTable();
+
+		// Starting from the last entry, iterate over the finger table.
+		for (int i = fingerTable.size() - 1; i >= 0; i--) {
+			NodeInterface finger = fingerTable.get(i);
+
+			// Obtain a stub from the registry.
+			NodeInterface stub = Util.getProcessStub(finger.getNodeName(), finger.getPort());
+
+			// Check that the finger is a member of the set {nodeID+1,...,ID-1}.
+			if (Util.checkInterval(finger.getNodeID(), node.getNodeID().add(BigInteger.ONE), ID.subtract(BigInteger.ONE))) {
+				return stub;
 			}
 		}
+
+		// If no finger is found, return the current node.
+		return (NodeInterface) node;
+
+
 		// collect the entries in the finger table for this node
 		
 		// starting from the last entry, iterate over the finger table
@@ -109,7 +104,7 @@ public class ChordLookup {
 		
 		// if logic returns true, then return the finger (means finger is the closest to key)
 		
-		return (NodeInterface) node;			
+		//return (NodeInterface) node;
 	}
 	
 	public void copyKeysFromSuccessor(NodeInterface succ) {
