@@ -7,6 +7,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.Set;
 
@@ -152,6 +153,8 @@ public class FileContentUpdate extends JFrame {
 			
 		} catch (RemoteException e) {
 			e.printStackTrace();
+		} catch (NotBoundException e) {
+			throw new RuntimeException(e);
 		}
 	}
 
