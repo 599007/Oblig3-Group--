@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.security.NoSuchAlgorithmException;
 import java.text.DecimalFormat;
@@ -79,7 +80,7 @@ public class FileManager {
      * @param bytesOfFile
      * @throws RemoteException 
      */
-    public int distributeReplicastoPeers() throws RemoteException {
+    public int distributeReplicastoPeers() throws RemoteException, NotBoundException {
     	
     	// randomly appoint the primary server to this file replicas
     	Random rnd = new Random(); 							
@@ -88,9 +89,17 @@ public class FileManager {
     	int counter = 0;
 	
     	// Task1: Given a filename, make replicas and distribute them to all active peers such that: pred < replica <= peer
-    	
-    	// Task2: assign a replica as the primary for this file. Hint, see the slide (project 3) on Canvas
-    	
+
+		// Task2: assign a replica as the primary for this file. Hint, see the slide (project 3) on Canvas
+		createReplicaFiles();
+		for(BigInteger replica : replicafiles){
+			NodeInterface succ = chordnode.findSuccessor(replica);
+			succ.addKey(replica);
+			boolean isPrimary = (index == counter);
+			succ.saveFileContent(filename, replica, bytesOfFile, isPrimary);
+			counter++;
+		}
+
     	// create replicas of the filename
     	
 		// iterate over the replicas
