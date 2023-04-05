@@ -28,93 +28,93 @@ import no.hvl.dat110.rpc.interfaces.NodeInterface;
 import static no.hvl.dat110.util.Hash.hashOf;
 
 public class FileManager {
-	
-	private static final Logger logger = LogManager.getLogger(FileManager.class);
-	
-	private BigInteger[] replicafiles;							// array stores replicated files for distribution to matching nodes
-	private int numReplicas;									// let's assume each node manages nfiles (5 for now) - can be changed from the constructor
-	private NodeInterface chordnode;
-	private String filepath; 									// absolute filepath
-	private String filename;									// only filename without path and extension
-	private BigInteger hash;
-	private byte[] bytesOfFile;
-	private String sizeOfByte;
-	
-	private Set<Message> activeNodesforFile = null;
-	
-	public FileManager(NodeInterface chordnode) throws RemoteException {
-		this.chordnode = chordnode;
-	}
-	
-	public FileManager(NodeInterface chordnode, int N) throws RemoteException {
-		this.numReplicas = N;
-		replicafiles = new BigInteger[N];
-		this.chordnode = chordnode;
-	}
-	
-	public FileManager(NodeInterface chordnode, String filepath, int N) throws RemoteException {
-		this.filepath = filepath;
-		this.numReplicas = N;
-		replicafiles = new BigInteger[N];
-		this.chordnode = chordnode;
-	}
-	
-	public void createReplicaFiles() {
 
-		for (int i = 0; i < numReplicas; i++) {
-			String replicaname = filename + i;
-			BigInteger hash = hashOf(replicaname);
-			replicafiles[i] = hash;
-		}
-		// set a loop where size = numReplicas
-		
-		// replicate by adding the index to filename
-		
-		// hash the replica
-		
-		// store the hash in the replicafiles array.
-	}
-	
-    /**
-     * 
-     * @param bytesOfFile
-     * @throws RemoteException 
-     */
-    public int distributeReplicastoPeers() throws RemoteException, NotBoundException {
-    	
-    	// randomly appoint the primary server to this file replicas
-    	Random rnd = new Random(); 							
-    	int index = rnd.nextInt(Util.numReplicas-1);
-    	
-    	int counter = 0;
-	
-    	// Task1: Given a filename, make replicas and distribute them to all active peers such that: pred < replica <= peer
+		private static final Logger logger = LogManager.getLogger(no.hvl.dat110.util.FileManager.class);
 
-		// Task2: assign a replica as the primary for this file. Hint, see the slide (project 3) on Canvas
-		createReplicaFiles();
-		for(BigInteger replica : replicafiles){
-			NodeInterface succ = chordnode.findSuccessor(replica);
-			succ.addKey(replica);
-			boolean isPrimary = (index == counter);
-			succ.saveFileContent(filename, replica, bytesOfFile, isPrimary);
-			counter++;
+		private BigInteger[] replicafiles;							// array stores replicated files for distribution to matching nodes
+		private int numReplicas;									// let's assume each node manages nfiles (5 for now) - can be changed from the constructor
+		private NodeInterface chordnode;
+		private String filepath; 									// absolute filepath
+		private String filename;									// only filename without path and extension
+		private BigInteger hash;
+		private byte[] bytesOfFile;
+		private String sizeOfByte;
+
+		private Set<Message> activeNodesforFile = null;
+
+		public FileManager(NodeInterface chordnode) throws RemoteException {
+			this.chordnode = chordnode;
 		}
 
-    	// create replicas of the filename
-    	
-		// iterate over the replicas
-    	
-    	// for each replica, find its successor (peer/node) by performing findSuccessor(replica)
-    	
-    	// call the addKey on the successor and add the replica
-		
-		// implement a logic to decide if this successor should be assigned as the primary for the file
-    	
-    	// call the saveFileContent() on the successor and set isPrimary=true if logic above is true otherwise set isPrimary=false
-    	
-    	// increment counter
-		return counter;
-    }
+		public FileManager(NodeInterface chordnode, int N) throws RemoteException {
+			this.numReplicas = N;
+			replicafiles = new BigInteger[N];
+			this.chordnode = chordnode;
+		}
+
+		public FileManager(NodeInterface chordnode, String filepath, int N) throws RemoteException {
+			this.filepath = filepath;
+			this.numReplicas = N;
+			replicafiles = new BigInteger[N];
+			this.chordnode = chordnode;
+		}
+
+		public void createReplicaFiles() {
+
+			for (int i = 0; i < numReplicas; i++) {
+				String replicaname = filename + i;
+				BigInteger hash = hashOf(replicaname);
+				replicafiles[i] = hash;
+			}
+			// set a loop where size = numReplicas
+
+			// replicate by adding the index to filename
+
+			// hash the replica
+
+			// store the hash in the replicafiles array.
+		}
+
+		/**
+		 *
+		 * @param bytesOfFile
+		 * @throws RemoteException
+		 */
+		public int distributeReplicastoPeers() throws RemoteException, NotBoundException {
+
+			// randomly appoint the primary server to this file replicas
+			Random rnd = new Random();
+			int index = rnd.nextInt(Util.numReplicas-1);
+
+			int counter = 0;
+
+			// Task1: Given a filename, make replicas and distribute them to all active peers such that: pred < replica <= peer
+
+			// Task2: assign a replica as the primary for this file. Hint, see the slide (project 3) on Canvas
+			createReplicaFiles();
+			for(BigInteger replica : replicafiles){
+				NodeInterface succ = chordnode.findSuccessor(replica);
+				succ.addKey(replica);
+				boolean isPrimary = (index == counter);
+				succ.saveFileContent(filename, replica, bytesOfFile, isPrimary);
+				counter++;
+			}
+
+			// create replicas of the filename
+
+			// iterate over the replicas
+
+			// for each replica, find its successor (peer/node) by performing findSuccessor(replica)
+
+			// call the addKey on the successor and add the replica
+
+			// implement a logic to decide if this successor should be assigned as the primary for the file
+
+			// call the saveFileContent() on the successor and set isPrimary=true if logic above is true otherwise set isPrimary=false
+
+			// increment counter
+			return counter;
+		}
 	
 	/**
 	 * 
@@ -122,7 +122,7 @@ public class FileManager {
 	 * @return list of active nodes having the replicas of this file
 	 * @throws RemoteException 
 	 */
-	public Set<Message> requestActiveNodesForFile(String filename) throws RemoteException {
+	public Set<Message> requestActiveNodesForFile(String filename) throws RemoteException, NotBoundException {
 
 		this.filename = filename;
 		activeNodesforFile = new HashSet<Message>(); 
@@ -130,9 +130,12 @@ public class FileManager {
 		// Task: Given a filename, find all the peers that hold a copy of this file
 		
 		// generate the N replicas from the filename by calling createReplicaFiles()
-		
+		createReplicaFiles();
 		// iterate over the replicas of the file
-		
+		for(BigInteger replica : replicafiles){
+			NodeInterface successor = chordnode.findSuccessor(replica);
+			activeNodesforFile.add(successor.getFilesMetadata(replica));
+		}
 		// for each replica, do findSuccessor(replica) that returns successor s.
 		
 		// get the metadata (Message) of the replica from the successor (i.e., active peer) of the file
