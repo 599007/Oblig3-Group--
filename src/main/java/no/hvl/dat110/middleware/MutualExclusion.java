@@ -73,24 +73,17 @@ public class MutualExclusion {
 		// multicast the message to activenodes (hint: use multicastMessage)
 		multicastMessage(message, activenodes);
 		// check that all replicas have replied (permission)
-		// check that all replicas have replied (permission)
 		if(areAllMessagesReturned(Util.numReplicas)) {
 			// if yes, acquireLock
 			acquireLock();
 			// node.broadcastUpdatetoPeers
 			node.broadcastUpdatetoPeers(updates);
-
 			// clear the mutexqueue
 			mutexqueue.clear();
 			return true;
 		}
-
 		// return permission
-
-
 		return false;
-
-
 		/*
 		if(areAllMessagesReturned(Util.numReplicas)){
 				acquireLock();
@@ -118,7 +111,7 @@ public class MutualExclusion {
 		// iterate over the activenodes
 		for(Message msg : activenodes){
 			// obtain a stub for each node from the registry
-			NodeInterface stub = Util.getProcessStub(node.getNodeName(), node.getPort());
+			NodeInterface stub = Util.getProcessStub(msg.getNodeName(), msg.getPort());
 			// call onMutexRequestReceived()
 			stub.onMutexRequestReceived(message);
 		}
@@ -136,7 +129,7 @@ public class MutualExclusion {
 		int caseid = -1;
 		
 		/* write if statement to transition to the correct caseid */
-		if(!CS_BUSY || !WANTS_TO_ENTER_CS){
+		if(!(CS_BUSY || WANTS_TO_ENTER_CS)){
 			caseid = 0;
 		} else if (CS_BUSY) {
 			caseid = 1;
@@ -185,6 +178,7 @@ public class MutualExclusion {
 			 *  the message with lower timestamp wins) - send OK if received is lower. Queue message if received is higher
 			 */
 			case 2: {
+				// check own sequence number against received sequence number
 
 				// check the clock of the sending process (note that the correct clock is in the message)
 				int sender = message.getClock();
@@ -193,6 +187,7 @@ public class MutualExclusion {
 				// compare clocks, the lowest wins
 
 				// if clocks are the same, compare nodeIDs, the lowest wins
+
 				if(sender == ownclock && message.getNodeID().compareTo(node.getNodeID()) < 0){
 					message.setAcknowledged(true);
 					NodeInterface stub = Util.getProcessStub(procName, port);
