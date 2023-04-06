@@ -134,7 +134,6 @@ public class Node extends UnicastRemoteObject implements NodeInterface {
 
 	}
 
-	
 	//@Override
 	public void copyKeysFromSuccessor(NodeInterface succ) {
 		
