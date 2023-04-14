@@ -84,27 +84,8 @@ public class MutualExclusion {
 		}
 		// return permission
 		return false;
-		/*
-		if(areAllMessagesReturned(Util.numReplicas)){
-				acquireLock();
-				node.broadcastUpdatetoPeers(updates);
-				mutexqueue.clear();
-				return true;
-		}
-		// if yes, acquireLock
-
-		// node.broadcastUpdatetoPeers
-		
-		// clear the mutexqueue
-		
-		// return permission
-		
-		return false;
-		*/
 
 	}
-	
-	// multicast message to other processes including self
 	private void multicastMessage(Message message, List<Message> activenodes) throws RemoteException {
 		
 		logger.info("Number of peers to vote = "+activenodes.size());
@@ -129,7 +110,7 @@ public class MutualExclusion {
 		int caseid = -1;
 		
 		/* write if statement to transition to the correct caseid */
-		if(!(CS_BUSY || WANTS_TO_ENTER_CS)){
+		if(!(CS_BUSY ||WANTS_TO_ENTER_CS)){
 			caseid = 0;
 		} else if (CS_BUSY) {
 			caseid = 1;
