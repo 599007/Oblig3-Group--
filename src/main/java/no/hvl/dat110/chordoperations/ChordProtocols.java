@@ -193,30 +193,6 @@ public class ChordProtocols {
 		} catch (RemoteException e) {
 
 		}
-
-		/*
-		try {
-			logger.info("Fixing the FingerTable for the Node: "+ chordnode.getNodeName());
-
-			List<NodeInterface> fingerTable = chordnode.getFingerTable();
-			fingerTable.clear();
-			BigInteger mbit = Hash.addressSize();
-			int nbit = Hash.bitSize();
-
-			for (int i = 0; i < nbit; i++) {
-				BigInteger k = chordnode.getNodeID().add(BigInteger.valueOf(2).pow(i)).mod(BigInteger.valueOf(2).pow(mbit.intValue()));
-				NodeInterface succ = chordnode.findSuccessor(k);
-				if(succ != null){
-					fingerTable.set(i, succ);
-				}
-			}
-		} catch (RemoteException e) {
-
-		} catch (NotBoundException e) {
-
-			throw new RuntimeException(e);
-		}
-*/
 			// get the finger table from the chordnode (list object)
 			
 			// ensure to clear the current finger table
@@ -234,9 +210,6 @@ public class ChordProtocols {
 			// check that succnode is not null, then add it to the finger table
 
 	}
-
-
-
 	protected NodeInterface getChordnode() {
 		return chordnode;
 	}
